@@ -13,6 +13,9 @@ namespace PasswordGenerator
 {
     public partial class Form1 : Form
     {
+        public IncludeOptions UsernameOptions { get; set; } = new IncludeOptions();
+        public IncludeOptions PasswordOptions { get; set; } = new IncludeOptions();
+
         public Form1()
         {
             InitializeComponent();
@@ -81,16 +84,16 @@ namespace PasswordGenerator
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            textBox2.Text = Data.DataSource.Substring(12);
+            tbDataSource.Text = Data.DataSource.Substring(12);
 
-            Data.ImportFromDataBase();
+            //Data.ImportFromDataBase();
 
-            Populate();
+            //Populate();
         }
 
         private void textBox2_TextChanged(object sender, EventArgs e)
         {
-            Data.DataSource ="data source="+ textBox2.Text;
+            Data.DataSource ="data source="+ tbDataSource.Text;
         }
 
         private void button5_Click(object sender, EventArgs e)
@@ -261,7 +264,7 @@ namespace PasswordGenerator
 
         private void numericUpDown2_ValueChanged(object sender, EventArgs e)
         {
-            Generator.Length = (int)numericUpDown2.Value;
+            Generator.Length = (int)nLength.Value;
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
@@ -287,16 +290,137 @@ namespace PasswordGenerator
         private void button1_Click(object sender, EventArgs e)
         {
             dataGridView1.Rows.Clear();
-            for(int i = 0;i<(int)numericUpDown1.Value;i++)
+            List<Entry> GeneratedStrings = new List<Entry>();
+            for(int i = 0;i<(int)nNumber.Value;i++)
             {
-                string u = Generator.GenerateUsername();
-                while(Data.Entries.Find(x=>x.Username==u)!=null)
+                string u = Generator.Generate(UsernameOptions);
+                while(Data.Entries.Find(x=>x.Username==u)!=null && GeneratedStrings.Find(x=> x.Username == u)!= null)
                 {
-                    u = Generator.GenerateUsername();
+                    u = Generator.Generate(UsernameOptions);
                 }
-                string p = Generator.GeneratePassword();
+                string p = Generator.Generate(PasswordOptions);
+
+                GeneratedStrings.Add(new Entry { Username = u });
 
                 dataGridView1.Rows.Add(null, u, p, " ");
+            }
+        }
+
+        private void capital_CheckedChanged(object sender, EventArgs e)
+        {
+            if (rdUsername.Checked)
+                UsernameOptions.IncludeCapitalLetters = cbCapitals.Checked;
+            else
+                PasswordOptions.IncludeCapitalLetters = cbCapitals.Checked;
+        }
+
+        private void cbSmall_CheckedChanged(object sender, EventArgs e)
+        {
+            if (rdUsername.Checked)
+                UsernameOptions.IncludeSmallLetters = cbSmall.Checked;
+            else
+                PasswordOptions.IncludeSmallLetters = cbSmall.Checked;
+        }
+
+        private void cbNumbers_CheckedChanged(object sender, EventArgs e)
+        {
+            if (rdUsername.Checked)
+                UsernameOptions.IncludeNumbers = cbNumbers.Checked;
+            else
+                PasswordOptions.IncludeNumbers = cbNumbers.Checked;
+        }
+
+        private void cbSymbols_CheckedChanged(object sender, EventArgs e)
+        {
+            if (rdUsername.Checked)
+                UsernameOptions.IncludeSymbols = cbSymbols.Checked;
+            else
+                PasswordOptions.IncludeSymbols = cbSymbols.Checked;
+        }
+
+        private void wCapital_ValueChanged(object sender, EventArgs e)
+        {
+            if (rdUsername.Checked)
+                UsernameOptions.WeightCapitalLetters = (int)wCapital.Value;
+            else
+                PasswordOptions.WeightCapitalLetters = (int)wCapital.Value;
+        }
+
+        private void wSmall_ValueChanged(object sender, EventArgs e)
+        {
+            if (rdUsername.Checked)
+                UsernameOptions.WeightSmallLetters = (int)wSmall.Value;
+            else
+                PasswordOptions.WeightSmallLetters = (int)wSmall.Value;
+        }
+
+        private void wNumbers_ValueChanged(object sender, EventArgs e)
+        {
+            if (rdUsername.Checked)
+                UsernameOptions.WeightNumbers = (int)wNumbers.Value;
+            else
+                PasswordOptions.WeightNumbers = (int)wNumbers.Value;
+        }
+
+        private void wSymbols_ValueChanged(object sender, EventArgs e)
+        {
+            if (rdUsername.Checked)
+                UsernameOptions.WeightSymbols = (int)wSymbols.Value;
+            else
+                PasswordOptions.WeightSymbols = (int)wSymbols.Value;
+        }
+
+        private void rdUsername_CheckedChanged(object sender, EventArgs e)
+        {
+            if(rdUsername.Checked)
+            {
+                cbCapitals.Checked = UsernameOptions.IncludeCapitalLetters;
+                wCapital.Value = UsernameOptions.WeightCapitalLetters;
+
+                cbSmall.Checked = UsernameOptions.IncludeSmallLetters;
+                wSmall.Value = UsernameOptions.WeightSmallLetters;
+
+                cbNumbers.Checked = UsernameOptions.IncludeNumbers;
+                wNumbers.Value = UsernameOptions.WeightNumbers;
+
+                cbSymbols.Checked = UsernameOptions.IncludeSymbols;
+                wSymbols.Value = UsernameOptions.WeightSymbols;
+            }
+            else
+            {
+                cbCapitals.Checked = PasswordOptions.IncludeCapitalLetters;
+                wCapital.Value = PasswordOptions.WeightCapitalLetters;
+
+                cbSmall.Checked = PasswordOptions.IncludeSmallLetters;
+                wSmall.Value = PasswordOptions.WeightSmallLetters;
+
+                cbNumbers.Checked = PasswordOptions.IncludeNumbers;
+                wNumbers.Value = PasswordOptions.WeightNumbers;
+
+                cbSymbols.Checked = PasswordOptions.IncludeSymbols;
+                wSymbols.Value = PasswordOptions.WeightSymbols;
+            }
+        }
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+            var ofd = new OpenFileDialog();
+            ofd.Filter = "DataBase file |*.db |*.db3 |*.sqlite |*.sqlite3 |*.dat";
+            if(ofd.ShowDialog() == DialogResult.OK )
+            {
+                tbDataSource.Text = ofd.FileName;
+            }
+        }
+
+        private void button10_Click(object sender, EventArgs e)
+        {
+            var svd = new SaveFileDialog();
+            svd.Filter = "DataBase file |*.db |*.db3 |*.sqlite |*.sqlite3 |*.dat";
+            svd.DefaultExt = ".db";
+            if (svd.ShowDialog() == DialogResult.OK)
+            {
+                Data.CreateNewDatabase(svd.FileName);
+                tbDataSource.Text = svd.FileName;
             }
         }
     }

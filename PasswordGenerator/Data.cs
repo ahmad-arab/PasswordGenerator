@@ -11,7 +11,34 @@ namespace PasswordGenerator
     {
         public static string DataSource = "data source=PGDB.db";
 
-        
+        public static bool CreateNewDatabase(string file)
+        {
+            try
+            {
+                SQLiteConnection.CreateFile(file);
+
+                using(SQLiteConnection connection = new SQLiteConnection("data source="+file))
+                {
+                    connection.Open();
+
+                    string s =  "CREATE TABLE [Records] ("+
+                                "[Id] INTEGER NOT NULL "+
+                                ", [Username] TEXT NOT NULL "+
+                                ", [Password] TEXT NOT NULL "+
+                                ", [Note] TEXT NULL "+
+                                ", CONSTRAINT[PK_Records] PRIMARY KEY([Id])); ";
+                    SQLiteCommand command = new SQLiteCommand(s, connection);
+                    command.ExecuteNonQuery();
+                }
+
+                return true;
+            }
+            catch
+            {
+                MessageBox.Show("Failed to creat a new database file");
+                return false;
+            }
+        }
 
         public static List<Entry> Entries = new List<Entry>();
 
